@@ -12,18 +12,17 @@ df.columns
 # %%
 # (mrs) | florence briggs thayer | man name
 # get Mr., Mrs., Mr off name
-mrs = 'Mrs.|the Countess.'
-miss = 'Miss.|Mme.|Mlle.|Ms'
-mr = 'Mr.|Master.|Rev.|Dr.|Major.|Don.|Col. Oberst|Col.|Capt.|Jonkheer.'
+mrs = r'Mrs\.|the Countess\.|Lady\.'
+miss = r'Miss\.|Mme\.|Mlle\.|Ms'
+mr = r'Mr\.|Master\.|Rev\.|Dr\.|Major\.|Don\.|Col\. Oberst|Col\.|Capt\.|Jonkheer\.'
 df['Mrs'] = df['Name'].str.contains(mrs)
 df['Miss'] = df['Name'].str.contains(miss)
 df['Mr'] = df['Name'].str.contains(mr)
 not_mrs = df['Mrs'] == False
 not_miss = df['Miss'] == False
 not_mr = df['Mr'] == False
-missed = df[not_mrs & not_miss & not_mr]
+missed = df[(not_mrs) & (not_miss) & (not_mr)]
 missed
-
 # %%
 df.head()
 
@@ -38,9 +37,6 @@ maiden_name
 maiden_name[1] = maiden_name[1].str.replace(')', '')
 maiden_name
 # %%
-maiden_name[1]
-
-# %%
 maiden_name[1] = maiden_name[1].fillna(maiden_name[0])
 maiden_name = maiden_name.rename(columns={0: 'HusbandName', 1: 'OwnName'})
 maiden_name
@@ -51,11 +47,15 @@ maiden_name
 # %%
 df["OwnName"]= maiden_name['OwnName']
 df['HusbandName']= maiden_name['HusbandName']
-df.drop(columns =["Name"], inplace = True)
+# df.drop(columns =["Name"], inplace = True)
 df
 # %%
+# married, but husband is not on ship, but brother/sister >___>
+df[df['OwnName'] == "Emelia Maria Vandemoortele"]
+# %%
 # Spouse = husband, wife (mistresses and fiancés were ignored)
-df['married'] = np.where((df['SibSp'] == 1) & (pd.notna(df['HusbandName'])), True, False)
+df['SpouseOnBoard'] = np.where((df['SibSp'] == 1) & (df['HusbandName'].str.replace(' ', '').isin(pd.Series(df['OwnName'].unique()).str.replace(' ', ''))), True, False)
+# df['married'] = np.where((df['SibSp'] == 1) & (pd.notna(df['HusbandName'])), True, False)
 df
 # %%
 df['SibSp'].unique()
@@ -70,10 +70,10 @@ h
 o.isin(h).unique()
 # %%
 df[0:14]
-df['married']
+df['SpouseOnBoard']
 # %%
 cond = df['OwnName'].str.replace(' ', '').isin(pd.Series(df['HusbandName'].unique()).str.replace(' ', ''))
 husbands = df[cond]
-df['married'] = np.where((df['married']) | (cond), True, False)
+df['SpouseOnBoard'] = np.where((df['SpouseOnBoard']) | (cond), True, False)
 df[0:14]
 # %%
